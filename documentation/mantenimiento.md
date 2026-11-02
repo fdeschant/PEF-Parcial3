@@ -30,7 +30,7 @@ Parcial3/
 3. Actualizar la documentación afectada.
 4. Ejecutar `make ci` localmente.
 5. Abrir un pull request con el resumen y la evidencia de los controles.
-6. Esperar revisión y checks verdes antes de integrar.
+6. Esperar los checks verdes; si hay equipo, además la revisión.
 
 Los detalles de estilo y commits están en `CONTRIBUTING.md`.
 

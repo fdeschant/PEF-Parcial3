@@ -48,7 +48,7 @@ La ejecución local completa finalizó correctamente con **60 pruebas aprobadas*
 | Fuente | Markdown en `documentation/` |
 | Configuración | `mkdocs.yml` |
 | Publicación | GitHub Pages mediante `.github/workflows/pages.yml` |
-| Control de acceso | Repositorio privado + colaboradores + protección de `main` |
+| Control de acceso | Repositorio público (Pages free) o privado con plan pago; solo colaboradores con `Write` pueden pushear/mergear. |
 | Validación | `mkdocs build --strict` + Lychee |
 
 ### 2.2 Contenido mínimo exigido
@@ -294,7 +294,7 @@ make baseline   # regenerar líneas base
 |---|---|
 | Herramienta de documentación externa | MkDocs Material, `mkdocs.yml`, sitio en `site/`. |
 | Documentación actualizada y compartida | Markdown versionado en `documentation/`; Pages. |
-| Control de acceso y colaboración | Repositorio privado + colaboradores + protección de `main`. |
+| Control de acceso y colaboración | Repositorio público o privado según plan; permisos `Write` solo para el equipo y protección de `main`. |
 | Descripción funcional | `descripcion-funcional.md`. |
 | Arquitectura y diagrama | `arquitectura.md` con Mermaid. |
 | Instalación y ejecución | `instalacion.md`. |
@@ -327,6 +327,8 @@ make baseline   # regenerar líneas base
 6. **API sin autenticación**: decisión de alcance; debe ejecutarse en localhost o
    detrás de un proxy autenticado.
 7. **Índice no persistente**: se reconstruye al iniciar.
+8. **Repositorio público**: el código y la documentación son visibles; no debe
+   contener secretos, credenciales ni datos personales.
 
 ---
 
@@ -344,9 +346,11 @@ git remote add origin https://github.com/<usuario>/<repositorio>.git
 git push -u origin main
 ```
 
-> Crear el repositorio como **privado** en GitHub antes del `push`. No subir
-> el corpus generado (`docs/documento_*.txt`), `.venv/`, `reports/`, `site/` ni
-> `.tools/`; ya están en `.gitignore`.
+> Crear el repositorio **público** si usás GitHub Pages en el plan free; un repo
+> privado requiere un plan pago para publicar Pages. Antes de hacerlo público,
+> ejecutá `gitleaks git` y revisá que no haya secretos. No subir el corpus
+> generado (`docs/documento_*.txt`), `.venv/`, `reports/`, `site/` ni `.tools/`;
+> ya están en `.gitignore`.
 
 ### 9.2 Invitar al equipo
 
@@ -368,7 +372,9 @@ git push -u origin main
 1. GitHub → **Settings → Branches → Add branch protection rule**.
 2. Branch name pattern: `main`.
 3. Activar **Require a pull request before merging**.
-4. Activar **Require approvals** (mínimo 1).
+4. Si trabajás solo, dejá **Required approvals en 0** o desactivá
+   **Require approvals**. GitHub no permite autoaprobarse, pero sí permite
+   mergear un PR propio cuando no se exige aprobación. Si hay equipo, poné 1.
 5. Activar **Require status checks to pass before merging** y seleccionar:
    - `Preparación del entorno`
    - `Calidad estática`

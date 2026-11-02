@@ -142,7 +142,8 @@ Configurar en GitHub:
    - `Documentación`
    - `Rendimiento y memoria`
    - `Resultado final`
-4. Exigir al menos una revisión.
+4. Exigir 0 aprobaciones si se trabaja solo; 1 o más si hay equipo. GitHub
+   no permite autoaprobarse, pero sí permite mergear con 0 aprobaciones.
 5. Bloquear force pushes y borrado de la rama.
 
 ## Publicación de documentación
