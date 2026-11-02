@@ -1,0 +1,86 @@
+site_name: Buscador Eficiente de Información
+site_description: Documentación funcional, técnica y operativa del buscador eficiente
+site_author: Programación Eficiente - Parcial 3
+docs_dir: documentation
+site_dir: site
+# site_url: https://<usuario>.github.io/<repositorio>/
+use_directory_urls: true
+
+theme:
+  name: material
+  language: es
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_symbol_type_heading: true
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Inicio: index.md
+  - Descripción funcional: descripcion-funcional.md
+  - Arquitectura: arquitectura.md
+  - Instalación y ejecución: instalacion.md
+  - Diseño técnico: diseno-tecnico.md
+  - API y contratos: api.md
+  - Referencia de API: referencia-api.md
+  - Pruebas: pruebas.md
+  - Rendimiento: rendimiento.md
+  - Seguridad: seguridad.md
+  - Integración continua: ci.md
+  - Mantenimiento: mantenimiento.md
+  - Glosario: glosario.md
+  - Decisiones (ADR):
+      - FastAPI aislada: adr/0001-fastapi-isolation-strategy.md
+      - Archivos grandes: adr/0002-large-file-architecture.md
+      - Documentación MkDocs: adr/0003-mkdocs-documentation.md
+      - Política de CI: adr/0004-ci-quality-gates.md

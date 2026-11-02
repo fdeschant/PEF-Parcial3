@@ -1,0 +1,171 @@
+{
+  "scenarios": [
+    {
+      "label": "index_build",
+      "current_mb": 3.66,
+      "peak_mb": 3.81,
+      "result": {
+        "documents": 201,
+        "terms": 253
+      },
+      "top_allocations": [
+        {
+          "location": "/usr/lib64/python3.11/re/__init__.py:206",
+          "size_kb": 1828.79,
+          "count": 33999
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:52",
+          "size_kb": 962.0,
+          "count": 253
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:53",
+          "size_kb": 520.98,
+          "count": 253
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:15",
+          "size_kb": 304.24,
+          "count": 402
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:50",
+          "size_kb": 59.73,
+          "count": 254
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:51",
+          "size_kb": 21.86,
+          "count": 249
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:37",
+          "size_kb": 12.86,
+          "count": 201
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:42",
+          "size_kb": 9.71,
+          "count": 147
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:40",
+          "size_kb": 9.05,
+          "count": 2
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:42",
+          "size_kb": 9.02,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "label": "sequential_load",
+      "current_mb": 2.11,
+      "peak_mb": 2.27,
+      "result": {
+        "documents": 201
+      },
+      "top_allocations": [
+        {
+          "location": "/usr/lib64/python3.11/re/__init__.py:206",
+          "size_kb": 1828.79,
+          "count": 33999
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:15",
+          "size_kb": 304.24,
+          "count": 402
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:37",
+          "size_kb": 12.86,
+          "count": 201
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_sequential.py:37",
+          "size_kb": 9.02,
+          "count": 1
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_sequential.py:36",
+          "size_kb": 9.02,
+          "count": 1
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:42",
+          "size_kb": 1.14,
+          "count": 16
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:38",
+          "size_kb": 0.12,
+          "count": 3
+        },
+        {
+          "location": "<frozen genericpath>:42",
+          "size_kb": 0.07,
+          "count": 3
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:73",
+          "size_kb": 0.06,
+          "count": 1
+        },
+        {
+          "location": "/usr/lib64/python3.11/tracemalloc.py:558",
+          "size_kb": 0.05,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "label": "large_file_read",
+      "current_mb": 0.0,
+      "peak_mb": 0.13,
+      "result": {
+        "characters": 69298
+      },
+      "top_allocations": [
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/large_file_handler.py:23",
+          "size_kb": 0.62,
+          "count": 8
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:38",
+          "size_kb": 0.12,
+          "count": 3
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/large_file_handler.py:25",
+          "size_kb": 0.11,
+          "count": 2
+        },
+        {
+          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:79",
+          "size_kb": 0.09,
+          "count": 2
+        },
+        {
+          "location": "/usr/lib64/python3.11/pathlib.py:526",
+          "size_kb": 0.09,
+          "count": 1
+        },
+        {
+          "location": "/usr/lib64/python3.11/tracemalloc.py:558",
+          "size_kb": 0.05,
+          "count": 1
+        },
+        {
+          "location": "/usr/lib64/python3.11/pathlib.py:540",
+          "size_kb": 0.05,
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "process_peak_kb": 32292
+}

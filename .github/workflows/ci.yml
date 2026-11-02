@@ -1,0 +1,320 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  preparacion:
+    name: Preparación del entorno
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias fijadas
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Verificar consistencia de dependencias
+        run: pip check
+      - name: Compilar módulos
+        run: python -m compileall -q *.py scripts tests benchmarks
+
+  calidad-estatica:
+    name: Calidad estática
+    needs: preparacion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Ruff
+        run: ruff check --output-format=github .
+      - name: Formato Ruff
+        if: always()
+        run: ruff format --check .
+      - name: mypy
+        if: always()
+        run: mypy
+      - name: Pylint
+        if: always()
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          pylint --rcfile=.pylintrc \
+            search_common.py search_sequential.py inverted_index.py ranking.py \
+            cache.py concurrency.py generator.py large_file_handler.py config.py api.py \
+            | tee reports/pylint.txt
+      - name: Complejidad y mantenibilidad
+        if: always()
+        run: python scripts/check_complexity.py
+      - name: Publicar reportes de calidad
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reportes-calidad
+          path: |
+            reports/pylint.txt
+            reports/radon-cc.json
+            reports/radon-mi.json
+
+  pruebas-cobertura:
+    name: Pruebas y cobertura (${{ matrix.python-version }})
+    needs: preparacion
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: pytest y cobertura
+        run: |
+          mkdir -p reports
+          pytest -q \
+            --cov \
+            --cov-report=term \
+            --cov-report=xml:reports/coverage.xml \
+            --cov-report=html:reports/htmlcov \
+            --junitxml=reports/junit.xml
+      - name: Publicar reportes de pruebas
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reportes-pruebas-${{ matrix.python-version }}
+          path: |
+            reports/junit.xml
+            reports/coverage.xml
+            reports/htmlcov
+
+  seguridad:
+    name: Seguridad
+    needs: preparacion
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Bandit (reporte completo)
+        run: |
+          mkdir -p reports
+          bandit -r . \
+            -x ./.venv,./tests,./docs,./documentation,./reports,./benchmarks,./scripts \
+            -f json -o reports/bandit.json -q || true
+      - name: Bandit (política de bloqueo)
+        run: |
+          bandit -r . \
+            -x ./.venv,./tests,./docs,./documentation,./reports,./benchmarks,./scripts \
+            -lll -iii
+      - name: pip-audit (dependencias de ejecución)
+        run: |
+          set +e
+          pip-audit -r requirements.txt --format json --output reports/pip-audit.json
+          status=$?
+          set -e
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("reports/pip-audit.json")
+          if path.exists():
+              data = json.loads(path.read_text())
+              print(f"Vulnerabilidades encontradas: {len(data.get('vulnerabilities', []))}")
+          PY
+          exit $status
+      - name: pip-audit (dependencias de desarrollo, informativo)
+        if: always()
+        run: pip-audit -r requirements-dev.txt --format json --output reports/pip-audit-dev.json || true
+      - name: Instalar Gitleaks
+        run: |
+          curl -sL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            -o /tmp/gitleaks.tgz
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+      - name: Gitleaks
+        run: |
+          mkdir -p reports
+          gitleaks git --report-format sarif --report-path reports/gitleaks.sarif
+      - name: Subir SARIF a Code Scanning
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: reports
+          category: security
+      - name: Publicar reportes de seguridad
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reportes-seguridad
+          path: |
+            reports/bandit.json
+            reports/pip-audit.json
+            reports/pip-audit-dev.json
+            reports/gitleaks.sarif
+
+  documentacion:
+    name: Documentación
+    needs: preparacion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias de documentación
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-docs.txt
+      - name: Construir sitio (estricto)
+        run: mkdocs build --strict
+      - name: Validar enlaces internos
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress documentation/**/*.md
+          fail: true
+      - name: Publicar sitio
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentacion-html
+          path: site
+
+  rendimiento-memoria:
+    name: Rendimiento y memoria
+    needs: pruebas-cobertura
+    runs-on: ubuntu-latest
+    env:
+      STRICT_PERF: ${{ github.ref == 'refs/heads/main' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Benchmarks
+        run: |
+          mkdir -p reports
+          pytest benchmarks -q --benchmark-json=reports/benchmark.json
+      - name: Comparar benchmarks (bloqueante en main)
+        if: env.STRICT_PERF == 'true'
+        run: python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
+      - name: Comparar benchmarks (informativo en PR)
+        if: env.STRICT_PERF != 'true'
+        continue-on-error: true
+        run: python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
+      - name: Medir memoria
+        run: python scripts/measure_memory.py --output reports/memory.json
+      - name: Comparar memoria (bloqueante en main)
+        if: env.STRICT_PERF == 'true'
+        run: python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
+      - name: Comparar memoria (informativo en PR)
+        if: env.STRICT_PERF != 'true'
+        continue-on-error: true
+        run: python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
+      - name: Perfilado de CPU
+        run: python scripts/profile_cpu.py
+      - name: Publicar reportes de rendimiento
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reportes-rendimiento
+          path: |
+            reports/benchmark.json
+            reports/memory.json
+            reports/profile.txt
+            reports/profile.prof
+            reports/pyinstrument.html
+
+  resultado-final:
+    name: Resultado final
+    if: always()
+    needs:
+      - preparacion
+      - calidad-estatica
+      - pruebas-cobertura
+      - seguridad
+      - documentacion
+      - rendimiento-memoria
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verificar estado de las etapas
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ]; then
+            echo "Una o más etapas fallaron."
+            exit 1
+          fi
+          if [ "${{ contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "Una o más etapas fueron canceladas."
+            exit 1
+          fi
+          echo "Todas las etapas finalizaron correctamente."
+      - name: Descargar reportes
+        if: always()
+        uses: actions/download-artifact@v8
+        with:
+          path: reports
+          merge-multiple: true
+      - name: Generar resumen
+        if: always()
+        run: python scripts/ci_summary.py
+      - name: Publicar resumen consolidado
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: resumen-ci
+          path: reports/summary.md

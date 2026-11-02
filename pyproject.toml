@@ -1,0 +1,94 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["."]
+extend-exclude = [
+    ".venv",
+    "docs",
+    "documentation",
+    "reports",
+    "site",
+    "htmlcov",
+    "benchmarks/.benchmarks",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PIE", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+"benchmarks/*" = ["B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+files = [
+    "search_common.py",
+    "search_sequential.py",
+    "inverted_index.py",
+    "ranking.py",
+    "cache.py",
+    "concurrency.py",
+    "generator.py",
+    "large_file_handler.py",
+    "config.py",
+    "api.py",
+]
+exclude = [
+    '(^|/)(\.venv|docs|documentation|reports|site|htmlcov|benchmarks|scripts|tests)/',
+]
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+strict_equality = true
+disallow_any_generics = true
+ignore_missing_imports = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    "ignore::DeprecationWarning:starlette.*",
+]
+
+[tool.coverage.run]
+source = ["."]
+branch = true
+omit = [
+    "tests/*",
+    "conftest.py",
+    "benchmarks/*",
+    "scripts/*",
+    "docs/*",
+    "documentation/*",
+    ".venv/*",
+    "main.py",
+    "reporter.py",
+    "profiler.py",
+    "complexity.py",
+    "run_all_tests.py",
+    "run_quality_check.py",
+    "measure_large_files.py",
+    "profiling_integration.py",
+    "benchmark_script.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

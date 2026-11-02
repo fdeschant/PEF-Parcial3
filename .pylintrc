@@ -1,0 +1,30 @@
+[MAIN]
+jobs = 0
+persistent = no
+fail-under = 8.0
+
+[MESSAGES CONTROL]
+disable =
+    C0114,
+    C0115,
+    C0116,
+    C0103,
+    R0903,
+    R0913,
+    R0914,
+    R0917,
+    W0212,
+    W0613,
+    W0718,
+    W1510,
+    W0201,
+    R1705
+
+[FORMAT]
+max-line-length = 100
+
+[DESIGN]
+max-args = 8
+max-locals = 20
+max-branches = 15
+max-statements = 60
