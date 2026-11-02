@@ -96,7 +96,7 @@ mkdocs build --strict
 
 step "Documentación: enlaces internos"
 ensure_lychee
-.tools/lychee --offline --no-progress 'documentation/**/*.md'
+.tools/lychee --offline --no-progress documentation
 
 step "Rendimiento: benchmarks"
 pytest benchmarks -q --benchmark-json=reports/benchmark.json

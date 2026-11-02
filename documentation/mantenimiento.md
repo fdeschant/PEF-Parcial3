@@ -92,7 +92,7 @@ Validar antes de subir:
 
 ```bash
 mkdocs build --strict
-lychee --offline --no-progress 'documentation/**/*.md'
+lychee --offline --no-progress documentation
 ```
 
 ## Cambios en el pipeline
