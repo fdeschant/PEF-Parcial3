@@ -49,8 +49,11 @@ La documentación se mantiene actualizada con el mismo flujo que el código:
 
 ### Control de acceso y colaboración
 
-El repositorio debe ser **privado** y tener al equipo como colaborador. La
-documentación hereda esos permisos. Para publicarla:
+El repositorio puede ser **público** (necesario para GitHub Pages en el plan
+free) o privado con un plan pago. La visibilidad no otorga permisos de escritura:
+solo los colaboradores con `Write` pueden pushear y mergear; los forks pueden
+abrir pull requests, pero no mergear. No publiques secretos ni datos personales;
+la documentación y el código quedan visibles. Para publicarla:
 
 1. Crear el repositorio en GitHub e invitar al equipo.
 2. En **Settings → Pages**, elegir **GitHub Actions** como fuente.
