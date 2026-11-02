@@ -46,7 +46,7 @@ security: install
 
 docs: install
 	$(BIN)/mkdocs build --strict
-	$(LYCHEE) --offline --no-progress 'documentation/**/*.md'
+	$(LYCHEE) --offline --no-progress documentation
 
 perf: install
 	mkdir -p reports

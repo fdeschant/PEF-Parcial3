@@ -44,7 +44,7 @@ resultado final consolida los artefactos y falla si alguna etapa falló.
 | Dependencias | pip-audit | `pip-audit -r requirements.txt` | JSON | Cualquier CVE en ejecución. |
 | Secretos | Gitleaks | `gitleaks git` | SARIF | Cualquier secreto. |
 | Documentación | MkDocs | `mkdocs build --strict` | Sitio HTML | El sitio no compila o hay warnings. |
-| Enlaces | Lychee | `lychee --offline documentation/**/*.md` | Texto | Enlace interno roto. |
+| Enlaces | Lychee | `lychee --offline documentation` | Texto | Enlace interno roto. |
 
 ## Jobs del workflow
 
@@ -120,7 +120,7 @@ bandit -r . ... -lll -iii
 pip-audit -r requirements.txt
 gitleaks git  # o gitleaks dir . si no hay repositorio Git
 mkdocs build --strict
-lychee --offline --no-progress 'documentation/**/*.md'
+lychee --offline --no-progress documentation
 pytest benchmarks -q --benchmark-json=reports/benchmark.json
 python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
 python scripts/measure_memory.py --output reports/memory.json

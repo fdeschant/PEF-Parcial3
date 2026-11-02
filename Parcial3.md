@@ -118,7 +118,7 @@ construcción del índice.
 | Dependencias | pip-audit | `pip-audit -r requirements.txt` | JSON | Cualquier CVE en ejecución |
 | Secretos | Gitleaks | `gitleaks git` | SARIF | Cualquier secreto |
 | Documentación | MkDocs | `mkdocs build --strict` | Sitio HTML | Warning o error |
-| Enlaces | Lychee | `lychee --offline documentation/**/*.md` | Texto | Enlace interno roto |
+| Enlaces | Lychee | `lychee --offline documentation` | Texto | Enlace interno roto |
 | Actualizaciones | Dependabot | `.github/dependabot.yml` | Pull requests | Revisión humana |
 
 ### 3.3 Etapas del pipeline
