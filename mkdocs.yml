@@ -3,7 +3,7 @@ site_description: Documentación funcional, técnica y operativa del buscador ef
 site_author: Programación Eficiente - Parcial 3
 docs_dir: documentation
 site_dir: site
-# site_url: https://<usuario>.github.io/<repositorio>/
+site_url: https://fdeschant.github.io/PEF-Parcial3/
 use_directory_urls: true
 
 theme:
