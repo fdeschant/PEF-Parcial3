@@ -407,3 +407,7 @@ versionada y validada automáticamente; el pipeline aplica políticas explícita
 de bloqueo y genera reportes legibles, JSON y SARIF. La única brecha es la
 publicación remota, que depende de credenciales y configuración de GitHub y se
 detalla paso a paso en la sección 9.
+
+
+
+
