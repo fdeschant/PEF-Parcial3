@@ -16,12 +16,14 @@ $(BIN)/python: requirements.txt requirements-dev.txt requirements-docs.txt
 	$(BIN)/python -m compileall -q *.py scripts tests benchmarks
 
 lint: install
-	$(BIN)/ruff check .
-	$(BIN)/ruff format --check .
-	$(BIN)/pylint --rcfile=.pylintrc $(CORE)
+	mkdir -p reports
+	bash -o pipefail -c '$(BIN)/ruff check . | tee reports/ruff.txt'
+	bash -o pipefail -c '$(BIN)/ruff format --check . | tee reports/ruff-format.txt'
+	bash -o pipefail -c '$(BIN)/pylint --rcfile=.pylintrc $(CORE) | tee reports/pylint.txt'
 
 types: install
-	$(BIN)/mypy
+	mkdir -p reports
+	bash -o pipefail -c '$(BIN)/mypy | tee reports/mypy.txt'
 
 test: install
 	mkdir -p reports
@@ -52,13 +54,15 @@ perf: install
 	mkdir -p reports
 	$(BIN)/pytest benchmarks -q --benchmark-json=reports/benchmark.json
 	$(BIN)/python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
-	$(BIN)/python scripts/measure_memory.py --output reports/memory.json
+	$(BIN)/python scripts/measure_memory.py --repeat 3 --output reports/memory.json
 	$(BIN)/python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
 	$(BIN)/python scripts/profile_cpu.py
 
 baseline: install
-	$(BIN)/pytest benchmarks -q --benchmark-json=benchmarks/baseline.json
-	$(BIN)/python scripts/measure_memory.py --output benchmarks/memory_baseline.json
+	mkdir -p reports
+	$(BIN)/pytest benchmarks -q --benchmark-json=reports/benchmark.json
+	$(BIN)/python scripts/compact_baseline.py reports/benchmark.json benchmarks/baseline.json
+	$(BIN)/python scripts/measure_memory.py --repeat 3 --output benchmarks/memory_baseline.json
 
 ci: lint types test security docs perf
 	@echo "Todos los controles de CI pasaron."

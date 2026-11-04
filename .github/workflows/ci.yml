@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
   pull_request:
     branches: [main]
   schedule:
@@ -55,13 +54,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Ruff
-        run: ruff check --output-format=github .
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          ruff check --output-format=github . | tee reports/ruff.txt
       - name: Formato Ruff
         if: always()
-        run: ruff format --check .
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          ruff format --check . | tee reports/ruff-format.txt
       - name: mypy
         if: always()
-        run: mypy
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          mypy | tee reports/mypy.txt
       - name: Pylint
         if: always()
         run: |
@@ -80,6 +88,9 @@ jobs:
         with:
           name: reportes-calidad
           path: |
+            reports/ruff.txt
+            reports/ruff-format.txt
+            reports/mypy.txt
             reports/pylint.txt
             reports/radon-cc.json
             reports/radon-mi.json
@@ -257,7 +268,7 @@ jobs:
         continue-on-error: true
         run: python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
       - name: Medir memoria
-        run: python scripts/measure_memory.py --output reports/memory.json
+        run: python scripts/measure_memory.py --repeat 3 --output reports/memory.json
       - name: Comparar memoria (bloqueante en main)
         if: env.STRICT_PERF == 'true'
         run: python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json

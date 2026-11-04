@@ -6,11 +6,15 @@
 - `pytest-benchmark` mide la mediana de múltiples rondas.
 - Los benchmarks se comparan contra `benchmarks/baseline.json` con tolerancia
   del **50%**.
-- La memoria se mide con `tracemalloc` y `resource.getrusage`.
+- La memoria se mide con `tracemalloc` y `resource.getrusage`; se repite tres
+  veces y se conserva la mediana.
 - El perfilado de CPU se genera con `cProfile` y `pyinstrument`.
 
-Los valores dependen del hardware. La línea base debe regenerarse en el mismo
-entorno de CI si cambia la infraestructura.
+Los valores dependen del hardware. Para que la comparación use el mismo entorno
+que el job de rendimiento, el workflow manual `.github/workflows/baseline.yml`
+regenera la línea base en `ubuntu-latest` con Python 3.13 y abre un PR con las
+medianas actualizadas. Mientras ese PR no se mergee, la copia versionada sigue
+siendo la referencia local.
 
 ## Benchmarks
 
@@ -68,8 +72,9 @@ Medición con `tracemalloc`:
 | Lectura de archivo grande (10k palabras) | **0.13 MB** | 0.00 MB |
 
 El pico de indexación es bajo porque el corpus de prueba es acotado. El umbral
-de CI es `min(256 MB, 1.5 × línea base)`; con la línea base actual, el límite es
-**5.71 MB**.
+de CI es `min(256 MB, 1.5 × línea base)`; con la línea base local, el límite es
+**5.71 MB**. La medición de CI repite cada escenario tres veces y usa la mediana
+para reducir el ruido del runner.
 
 Las principales asignaciones corresponden a:
 
@@ -99,7 +104,7 @@ o por separado:
 ```bash
 pytest benchmarks -q --benchmark-json=reports/benchmark.json
 python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
-python scripts/measure_memory.py --output reports/memory.json
+python scripts/measure_memory.py --repeat 3 --output reports/memory.json
 python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
 python scripts/profile_cpu.py
 ```

@@ -70,13 +70,18 @@ Equivale a:
 
 ```bash
 pytest benchmarks -q --benchmark-json=reports/benchmark.json
-cp reports/benchmark.json benchmarks/baseline.json
-python scripts/measure_memory.py --output benchmarks/memory_baseline.json
+python scripts/compact_baseline.py reports/benchmark.json benchmarks/baseline.json
+python scripts/measure_memory.py --repeat 3 --output benchmarks/memory_baseline.json
 ```
+
+La forma recomendada es ejecutar el workflow **Actions → Regenerar línea base**:
+corre en `ubuntu-latest` con Python 3.13, publica los artefactos y abre un PR con
+las líneas base actualizadas. El PR debe revisarse y justificarse igual que
+cualquier cambio.
 
 Reglas:
 
-1. Ejecutar en un equipo descargado.
+1. Ejecutar en un equipo descargado o, preferentemente, en el runner de CI.
 2. Repetir al menos tres veces y conservar la mediana.
 3. Documentar la causa del cambio en el PR.
 4. No regenerar la línea base para “hacer pasar” una regresión.
