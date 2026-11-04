@@ -1,124 +1,137 @@
 {
+  "repeat": 3,
   "scenarios": [
     {
       "label": "index_build",
-      "current_mb": 3.66,
-      "peak_mb": 3.81,
+      "current_mb": 3.38,
+      "peak_mb": 3.53,
       "result": {
         "documents": 201,
         "terms": 253
       },
       "top_allocations": [
         {
-          "location": "/usr/lib64/python3.11/re/__init__.py:206",
-          "size_kb": 1828.79,
-          "count": 33999
+          "location": "/opt/hostedtoolcache/Python/3.13.17/x64/lib/python3.13/re/__init__.py:267",
+          "size_kb": 1562.52,
+          "count": 33998
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:52",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:52",
           "size_kb": 962.0,
           "count": 253
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:53",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:53",
           "size_kb": 520.98,
           "count": 253
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:15",
-          "size_kb": 304.24,
-          "count": 402
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:15",
+          "size_kb": 299.98,
+          "count": 324
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:50",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:50",
           "size_kb": 59.73,
           "count": 254
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:51",
-          "size_kb": 21.86,
-          "count": 249
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:51",
+          "size_kb": 17.17,
+          "count": 174
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:37",
-          "size_kb": 12.86,
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:37",
+          "size_kb": 11.29,
           "count": 201
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:42",
-          "size_kb": 9.71,
-          "count": 147
-        },
-        {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:40",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:40",
           "size_kb": 9.05,
           "count": 2
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/inverted_index.py:42",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:42",
+          "size_kb": 9.02,
+          "count": 1
+        },
+        {
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/inverted_index.py:41",
           "size_kb": 9.02,
           "count": 1
         }
+      ],
+      "repeat": 3,
+      "samples_peak_mb": [
+        3.53,
+        3.53,
+        3.54
       ]
     },
     {
       "label": "sequential_load",
-      "current_mb": 2.11,
-      "peak_mb": 2.27,
+      "current_mb": 1.85,
+      "peak_mb": 2.0,
       "result": {
         "documents": 201
       },
       "top_allocations": [
         {
-          "location": "/usr/lib64/python3.11/re/__init__.py:206",
-          "size_kb": 1828.79,
-          "count": 33999
+          "location": "/opt/hostedtoolcache/Python/3.13.17/x64/lib/python3.13/re/__init__.py:267",
+          "size_kb": 1562.52,
+          "count": 33998
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:15",
-          "size_kb": 304.24,
-          "count": 402
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:15",
+          "size_kb": 299.98,
+          "count": 324
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:37",
-          "size_kb": 12.86,
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:37",
+          "size_kb": 11.29,
           "count": 201
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_sequential.py:37",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_sequential.py:37",
           "size_kb": 9.02,
           "count": 1
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_sequential.py:36",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_sequential.py:36",
           "size_kb": 9.02,
           "count": 1
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/search_common.py:42",
-          "size_kb": 1.14,
-          "count": 16
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:42",
+          "size_kb": 1.25,
+          "count": 19
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:38",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/scripts/measure_memory.py:40",
           "size_kb": 0.12,
           "count": 3
         },
         {
-          "location": "<frozen genericpath>:42",
+          "location": "<frozen genericpath>:51",
           "size_kb": 0.07,
           "count": 3
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:73",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/scripts/measure_memory.py:97",
           "size_kb": 0.06,
           "count": 1
         },
         {
-          "location": "/usr/lib64/python3.11/tracemalloc.py:558",
-          "size_kb": 0.05,
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/search_common.py:30",
+          "size_kb": 0.03,
           "count": 1
         }
+      ],
+      "repeat": 3,
+      "samples_peak_mb": [
+        2.0,
+        2.0,
+        2.01
       ]
     },
     {
@@ -130,42 +143,38 @@
       },
       "top_allocations": [
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/large_file_handler.py:23",
-          "size_kb": 0.62,
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/large_file_handler.py:23",
+          "size_kb": 0.61,
           "count": 8
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:38",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/scripts/measure_memory.py:40",
           "size_kb": 0.12,
           "count": 3
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/large_file_handler.py:25",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/large_file_handler.py:25",
           "size_kb": 0.11,
           "count": 2
         },
         {
-          "location": "/home/fds/Nextcloud/Uni/PEF/Parcial3/scripts/measure_memory.py:79",
+          "location": "/home/runner/work/PEF-Parcial3/PEF-Parcial3/scripts/measure_memory.py:104",
           "size_kb": 0.09,
           "count": 2
         },
         {
-          "location": "/usr/lib64/python3.11/pathlib.py:526",
-          "size_kb": 0.09,
-          "count": 1
-        },
-        {
-          "location": "/usr/lib64/python3.11/tracemalloc.py:558",
-          "size_kb": 0.05,
-          "count": 1
-        },
-        {
-          "location": "/usr/lib64/python3.11/pathlib.py:540",
+          "location": "/opt/hostedtoolcache/Python/3.13.17/x64/lib/python3.13/tracemalloc.py:558",
           "size_kb": 0.05,
           "count": 1
         }
+      ],
+      "repeat": 3,
+      "samples_peak_mb": [
+        0.13,
+        0.13,
+        0.13
       ]
     }
   ],
-  "process_peak_kb": 32292
+  "process_peak_kb": 33556
 }
