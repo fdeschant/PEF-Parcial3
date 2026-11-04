@@ -2,7 +2,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
-REPORTS_DIR = os.path.join(BASE_DIR, "reportes")
+REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 
 NUM_DOCUMENTS = 200
 MIN_WORDS_PER_DOC = 50

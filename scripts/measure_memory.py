@@ -31,19 +31,34 @@ def _top_allocations(limit: int = 10) -> list[dict[str, object]]:
     ]
 
 
-def _measure(label: str, operation) -> dict[str, object]:
-    gc.collect()
-    tracemalloc.start()
-    result = operation()
-    current, peak = tracemalloc.get_traced_memory()
-    allocations = _top_allocations()
-    tracemalloc.stop()
+def _measure(label: str, operation, repeat: int) -> dict[str, object]:
+    samples: list[dict[str, object]] = []
+    for _ in range(repeat):
+        gc.collect()
+        tracemalloc.start()
+        result = operation()
+        current, peak = tracemalloc.get_traced_memory()
+        allocations = _top_allocations()
+        tracemalloc.stop()
+        samples.append(
+            {
+                "current_mb": round(current / (1024 * 1024), 2),
+                "peak_mb": round(peak / (1024 * 1024), 2),
+                "result": result,
+                "top_allocations": allocations,
+            }
+        )
+
+    samples.sort(key=lambda sample: float(sample["peak_mb"]))
+    median = samples[len(samples) // 2]
     return {
         "label": label,
-        "current_mb": round(current / (1024 * 1024), 2),
-        "peak_mb": round(peak / (1024 * 1024), 2),
-        "result": result,
-        "top_allocations": allocations,
+        "current_mb": median["current_mb"],
+        "peak_mb": median["peak_mb"],
+        "result": median["result"],
+        "top_allocations": median["top_allocations"],
+        "repeat": repeat,
+        "samples_peak_mb": [sample["peak_mb"] for sample in samples],
     }
 
 
@@ -51,8 +66,16 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--docs", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=3,
+        help="Cantidad de mediciones por escenario; se conserva la mediana.",
+    )
     parser.add_argument("--output", type=Path, default=Path("reports/memory.json"))
     args = parser.parse_args()
+    if args.repeat < 1:
+        parser.error("--repeat debe ser mayor o igual a 1")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         generate_documents(args.docs, tmpdir, seed=args.seed)
@@ -65,21 +88,25 @@ def main() -> int:
                 "documents": index_engine.build_index(),
                 "terms": len(index_engine.index.index),
             },
+            args.repeat,
         )
 
         sequential_engine = SequentialSearchEngine(tmpdir)
         sequential_result = _measure(
             "sequential_load",
             lambda: {"documents": sequential_engine.load_documents()},
+            args.repeat,
         )
 
         large_file = next(Path(tmpdir).glob("documento_large_*.txt"))
         file_result = _measure(
             "large_file_read",
             lambda: {"characters": len(read_file_buffered(str(large_file)))},
+            args.repeat,
         )
 
     payload = {
+        "repeat": args.repeat,
         "scenarios": [index_result, sequential_result, file_result],
         "process_peak_kb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
     }

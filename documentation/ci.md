@@ -37,14 +37,18 @@ resultado final consolida los artefactos y falla si alguna etapa falló.
 | Profiling CPU | cProfile + pyinstrument | `python scripts/profile_cpu.py` | `profile.txt`, `.prof`, HTML | Informativo; se archiva. |
 | Análisis estático | Ruff | `ruff check .` / `ruff format --check .` | Anotaciones GitHub | Cualquier violación. |
 | Análisis de diseño | Pylint | `pylint --rcfile=.pylintrc ...` | Texto | Score < 8.0. |
-| Complejidad | Radon | `python scripts/check_complexity.py` | JSON CC/MI | Bloque ≥ C o MI < 20. |
+| Complejidad y tamaño | Radon + Pylint | `python scripts/check_complexity.py`; `pylint --rcfile=.pylintrc` | JSON CC/MI + texto | Bloque ≥ C, MI < 20, `max-statements=60` o `max-branches=15`. |
 | Tipado | mypy | `mypy` | Texto | Cualquier error en el núcleo. |
-| Memoria | tracemalloc | `python scripts/measure_memory.py` + `check_memory.py` | JSON | > `min(256 MB, 1.5× base)` en `main`. |
+| Memoria | tracemalloc | `python scripts/measure_memory.py --repeat 3` + `check_memory.py` | JSON | Mediana de 3 corridas > `min(256 MB, 1.5× base)` en `main`. |
 | Código inseguro | Bandit | `bandit -r . ... -lll -iii` | JSON | HIGH/HIGH. |
 | Dependencias | pip-audit | `pip-audit -r requirements.txt` | JSON | Cualquier CVE en ejecución. |
 | Secretos | Gitleaks | `gitleaks git` | SARIF | Cualquier secreto. |
 | Documentación | MkDocs | `mkdocs build --strict` | Sitio HTML | El sitio no compila o hay warnings. |
 | Enlaces | Lychee | `lychee --offline documentation` | Texto | Enlace interno roto. |
+
+Lychee se ejecuta con `--offline`: valida enlaces internos y evita depender de
+servicios externos durante cada push. Los enlaces externos se revisan
+manualmente cuando se agrega o cambia una referencia.
 
 ## Jobs del workflow
 
@@ -61,16 +65,37 @@ resultado final consolida los artefactos y falla si alguna etapa falló.
 ## Artefactos
 
 - `reportes-pruebas-<python>`: JUnit, cobertura XML y HTML.
-- `reportes-calidad`: Pylint, Radon CC y MI.
+- `reportes-calidad`: Ruff, formato, mypy, Pylint, Radon CC y MI.
 - `reportes-seguridad`: Bandit JSON, pip-audit JSON, Gitleaks SARIF.
 - `documentacion-html`: sitio MkDocs.
 - `reportes-rendimiento`: benchmark JSON, memoria JSON, perfil CPU.
+- `baseline-generada`: líneas base de benchmark y memoria generadas en CI.
 - `resumen-ci`: resumen consolidado.
 
 El SARIF de Gitleaks se intenta subir a GitHub Code Scanning. Si el repositorio
 no tiene Code Scanning habilitado, el paso es tolerante a fallos y el reporte
 queda igual como artefacto. Bandit se publica como JSON porque su versión actual
 no emite SARIF nativo.
+
+## Regeneración de la línea base en CI
+
+`.github/workflows/baseline.yml` se ejecuta manualmente desde **Actions →
+Regenerar línea base → Run workflow**. Corre en `ubuntu-latest` con la misma
+versión de Python que el job de rendimiento y:
+
+1. ejecuta los benchmarks;
+2. compacta el JSON a las medianas necesarias;
+3. mide memoria con tres repeticiones y conserva la mediana;
+4. publica los artefactos;
+5. abre un pull request `ci/baseline-<run_id>` con las líneas base actualizadas.
+
+El PR se revisa como cualquier cambio: no se usa para ocultar una regresión, sino
+para alinear la línea base con el entorno real de CI.
+
+Si el repositorio no permite que `GITHUB_TOKEN` cree pull requests, habilitar
+**Settings → Actions → General → Allow GitHub Actions to create and approve pull
+requests** o descargar el artefacto `baseline-generada` y commitear los dos
+archivos manualmente.
 
 ## Política de bloqueo
 
@@ -123,7 +148,7 @@ mkdocs build --strict
 lychee --offline --no-progress documentation
 pytest benchmarks -q --benchmark-json=reports/benchmark.json
 python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
-python scripts/measure_memory.py --output reports/memory.json
+python scripts/measure_memory.py --repeat 3 --output reports/memory.json
 python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
 python scripts/profile_cpu.py
 ```
@@ -167,5 +192,5 @@ publica en GitHub Pages. Requiere:
 | pip-audit | Dependencia vulnerable | Actualizar; si no hay fix, excepción documentada. |
 | Gitleaks | Secreto | Rotar, eliminar y revisar historial. |
 | MkDocs | Enlace o warning | Corregir la página; `mkdocs build --strict` local. |
-| Benchmark | Regresión real o ruido | Revisar profiling; regenerar baseline si el cambio es esperado. |
+| Benchmark | Regresión real o ruido | Revisar profiling; si el cambio es esperado, ejecutar **Regenerar línea base** y mergear el PR. |
 | Memoria | Nuevo uso de memoria | Revisar allocations; ajustar solo con justificación. |

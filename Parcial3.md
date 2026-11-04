@@ -2,9 +2,12 @@
 
 **Materia**: Programación Eficiente  
 **Proyecto**: Buscador Eficiente de Información  
-**Integrantes**: [completar nombres]  
-**Repositorio**: [completar URL de GitHub]  
-**Sitio publicado**: [completar URL de GitHub Pages]  
+**Integrantes**: fdeschant
+
+**Repositorio**: <https://github.com/fdeschant/PEF-Parcial3>
+
+**Sitio publicado**: <https://fdeschant.github.io/PEF-Parcial3/>
+
 **Fecha**: noviembre de 2026
 
 ---
@@ -29,10 +32,12 @@ La ejecución local completa finalizó correctamente con **60 pruebas aprobadas*
 **95.17% de cobertura**, **Pylint 10.00/10**, **0 vulnerabilidades conocidas**,
 **0 secretos detectados** y **0 enlaces internos rotos**.
 
-> **Estado**: implementación local completa y validada. La publicación remota
-> (repositorio, GitHub Pages y protección de rama) queda pendiente porque este
-> entorno no tiene credenciales ni repositorio remoto. Los pasos exactos están
-> en la sección 9.
+> **Estado**: documentación, repositorio y GitHub Pages publicados. CI remoto
+> verde en preparación, calidad, pruebas, seguridad y documentación. El gate de
+> rendimiento se recalibra con `.github/workflows/baseline.yml`, que genera la
+> línea base en `ubuntu-latest` con Python 3.13 y abre un pull request; una vez
+> mergeado, `Rendimiento y memoria` y `Resultado final` quedan alineados. La
+> verificación remota está en la sección 9.
 
 ---
 
@@ -95,8 +100,8 @@ construcción del índice.
 
 - Plataforma: **GitHub Actions**.
 - Workflow principal: `.github/workflows/ci.yml`.
-- Disparadores: `push` a `main` y `develop`, `pull_request` a `main`,
-  `schedule` semanal y `workflow_dispatch`.
+- Disparadores: `push` a cualquier rama, `pull_request` a `main`, `schedule`
+  semanal y `workflow_dispatch`.
 - Concurrencia: cancela ejecuciones anteriores de la misma rama.
 - Permisos: `contents: read`; el job de seguridad agrega
   `security-events: write`.
@@ -111,9 +116,9 @@ construcción del índice.
 | Profiling CPU | cProfile + pyinstrument | `python scripts/profile_cpu.py` | TXT, PROF, HTML | Informativo |
 | Análisis estático | Ruff | `ruff check .` + `ruff format --check .` | Anotaciones | Cualquier violación |
 | Diseño | Pylint | `pylint --rcfile=.pylintrc ...` | Texto | Score < 8.0 |
-| Complejidad | Radon | `python scripts/check_complexity.py` | JSON CC + MI | Bloque ≥ C o MI < 20 |
+| Complejidad y tamaño | Radon + Pylint | `python scripts/check_complexity.py`; `pylint --rcfile=.pylintrc` | JSON CC/MI + texto | Bloque ≥ C, MI < 20, `max-statements=60` o `max-branches=15` |
 | Tipado | mypy | `mypy` | Texto | Cualquier error en el núcleo |
-| Memoria | tracemalloc | `python scripts/measure_memory.py` + `check_memory.py` | JSON | > `min(256 MB, 1.5× base)` en `main` |
+| Memoria | tracemalloc | `python scripts/measure_memory.py --repeat 3` + `check_memory.py` | JSON | Mediana de 3 corridas > `min(256 MB, 1.5× base)` en `main` |
 | Código inseguro | Bandit | `bandit -r . ... -lll -iii` | JSON | HIGH/HIGH |
 | Dependencias | pip-audit | `pip-audit -r requirements.txt` | JSON | Cualquier CVE en ejecución |
 | Secretos | Gitleaks | `gitleaks git` | SARIF | Cualquier secreto |
@@ -159,6 +164,20 @@ falló o fue cancelada.
 La política completa está en [`documentation/ci.md`](documentation/ci.md) y en
 [`documentation/adr/0004-ci-quality-gates.md`](documentation/adr/0004-ci-quality-gates.md).
 
+### 3.5 Línea base generada en CI
+
+Para que la línea base no dependa del hardware de un integrante se agregó el
+workflow manual `.github/workflows/baseline.yml`. Corre en `ubuntu-latest` con
+Python 3.13, ejecuta los benchmarks, compacta las medianas y mide memoria con
+tres repeticiones. Luego publica los artefactos y abre un pull request
+`ci/baseline-<run_id>` con las líneas base actualizadas.
+
+La copia versionada actual es la referencia local; al ejecutar el workflow y
+mergear el PR, la línea base queda generada en el mismo entorno que el gate de
+CI. Esto evita que un runner más lento o una versión distinta de Python se
+interpreten como regresión. El PR se revisa y se justifica igual que cualquier
+otro cambio; no se usa para ocultar una regresión real.
+
 ---
 
 ## 4. Evidencia de ejecución local
@@ -186,7 +205,7 @@ Required test coverage of 80.0% reached.
 
 | Control | Resultado |
 |---|---|
-| Ruff | Sin hallazgos; 45 archivos formateados. |
+| Ruff | Sin hallazgos; 47 archivos formateados. |
 | mypy | Sin errores en 10 archivos del núcleo. |
 | Pylint | **10.00/10**. |
 | Radon CC | Todos los bloques en rango **A/B**. |
@@ -228,9 +247,11 @@ Mediana de la línea base (`benchmarks/baseline.json`):
 | Búsqueda cacheada | 0.339 µs |
 | Lectura por buffer | 25.879 µs |
 
-La ejecución de verificación comparó los valores actuales contra la línea base
-con tolerancia del 50%: todas las operaciones quedaron dentro del rango
-(máximo observado 1.18×).
+La ejecución local comparó los valores actuales contra la línea base con
+tolerancia del 50%: todas las operaciones quedaron dentro del rango (máximo
+observado 1.18×). La línea base versionada para CI se regenera en
+`ubuntu-latest` con Python 3.13 mediante `baseline.yml`, para que la comparación
+no dependa de este equipo.
 
 ### 4.6 Memoria
 
@@ -239,6 +260,9 @@ con tolerancia del 50%: todas las operaciones quedaron dentro del rango
 | Construcción de índice | 3.80 MB | 5.71 MB |
 | Carga secuencial | 2.27 MB | — |
 | Lectura de archivo grande | 0.13 MB | — |
+
+La medición de CI repite cada escenario tres veces (`--repeat 3`) y conserva la
+mediana; la tabla muestra la referencia local.
 
 ### 4.7 Profiling
 
@@ -310,71 +334,69 @@ make baseline   # regenerar líneas base
 | Etapas del pipeline | Sección 3.3 y diagrama Mermaid. |
 | Política de rechazo | Sección 3.4 y ADR 0004. |
 | Reportes legibles/JSON/SARIF | `reports/` y artefactos de CI. |
+| Línea base de rendimiento confiable | `.github/workflows/baseline.yml` en `ubuntu-latest`. |
 | Falsos positivos y excepciones | `SECURITY.md` y `seguridad.md`. |
 
 ---
 
 ## 8. Limitaciones
 
-1. **Publicación remota pendiente**: no hay repositorio GitHub ni credenciales en
-   este entorno. El workflow está listo, pero no se ejecutó en GitHub.
-2. **GitHub Pages pendiente**: requiere habilitar Pages y hacer push a `main`.
-3. **Protección de rama pendiente**: requiere configurarla en GitHub.
-4. **Code Scanning opcional**: el SARIF de Gitleaks se intenta subir, pero en
+1. **Línea base de rendimiento en CI**: el workflow `baseline.yml` debe
+   ejecutarse manualmente una vez y su PR debe mergearse para alinear el gate con
+   el runner. Hasta entonces, la comparación puede fallar por diferencia de
+   hardware o versión de Python.
+2. **Code Scanning opcional**: el SARIF de Gitleaks se intenta subir; en
    repositorios privados puede requerir GitHub Advanced Security.
-5. **Benchmarks dependientes del hardware**: se comparan con tolerancia y línea
+3. **Benchmarks dependientes del hardware**: se comparan con tolerancia y línea
    base; no son una medida absoluta.
-6. **API sin autenticación**: decisión de alcance; debe ejecutarse en localhost o
+4. **Enlaces externos**: Lychee corre con `--offline`, por lo que valida enlaces
+   internos; los externos se revisan manualmente.
+5. **API sin autenticación**: decisión de alcance; debe ejecutarse en localhost o
    detrás de un proxy autenticado.
-7. **Índice no persistente**: se reconstruye al iniciar.
-8. **Repositorio público**: el código y la documentación son visibles; no debe
+6. **Índice no persistente**: se reconstruye al iniciar.
+7. **Repositorio público**: el código y la documentación son visibles; no debe
    contener secretos, credenciales ni datos personales.
 
 ---
 
-## 9. Acciones pendientes para completar la entrega remota
+## 9. Verificación remota
 
-### 9.1 Crear y subir el repositorio
+### 9.1 Repositorio y publicación
 
-```bash
-cd /home/fds/Nextcloud/Uni/PEF/Parcial3
-git init
-git add .
-git commit -m "Parcial 3: documentación externa y CI"
-git branch -M main
-git remote add origin https://github.com/<usuario>/<repositorio>.git
-git push -u origin main
-```
+- Repositorio público: <https://github.com/fdeschant/PEF-Parcial3>
+- Sitio publicado: <https://fdeschant.github.io/PEF-Parcial3/>
+- Pages usa **GitHub Actions** como fuente y publica desde `main` mediante
+  `.github/workflows/pages.yml`.
+- `README.md` enlaza al sitio; `mkdocs.yml` contiene el `site_url` real.
+- El repositorio es público porque Pages en el plan free lo requiere. La
+  visibilidad no otorga escritura: solo los colaboradores con permiso `Write`
+  pueden pushear y mergear.
 
-> Crear el repositorio **público** si usás GitHub Pages en el plan free; un repo
-> privado requiere un plan pago para publicar Pages. Antes de hacerlo público,
-> ejecutá `gitleaks git` y revisá que no haya secretos. No subir el corpus
-> generado (`docs/documento_*.txt`), `.venv/`, `reports/`, `site/` ni `.tools/`;
-> ya están en `.gitignore`.
+### 9.2 Regenerar la línea base en CI
 
-### 9.2 Invitar al equipo
+1. Abrir **Actions → Regenerar línea base → Run workflow**.
+2. Dejar `create_pr` en `true` y ejecutar.
+3. Esperar el job `Línea base en ubuntu-latest`; descargar el artefacto
+   `baseline-generada` si se quiere conservar una copia.
+4. Revisar el PR `ci/baseline-<run_id>`: solo debe cambiar
+   `benchmarks/baseline.json` y `benchmarks/memory_baseline.json`.
+5. Mergear el PR. El push a `main` vuelve a ejecutar CI y el gate de rendimiento
+   queda alineado con el runner.
 
-1. GitHub → **Settings → Collaborators and teams**.
-2. **Add people** e invitar a cada integrante con permiso de escritura.
-3. Verificar que todos puedan abrir pull requests.
+> No se debe regenerar la línea base para ocultar una regresión real. El PR
+> existe para revisar la recalibración y dejar trazabilidad. Si el repositorio no
+> permite PRs creados por `GITHUB_TOKEN`, habilitar **Settings → Actions →
+> General → Allow GitHub Actions to create and approve pull requests** o subir
+> manualmente los dos archivos del artefacto `baseline-generada`.
 
-### 9.3 Habilitar GitHub Pages
-
-1. GitHub → **Settings → Pages**.
-2. En **Build and deployment → Source**, elegir **GitHub Actions**.
-3. Hacer push a `main` o ejecutar **Actions → Publicar documentación → Run
-   workflow**.
-4. Copiar la URL publicada y agregarla en la portada de este informe y en
-   `mkdocs.yml` como `site_url`.
-
-### 9.4 Proteger la rama `main`
+### 9.3 Proteger la rama `main`
 
 1. GitHub → **Settings → Branches → Add branch protection rule**.
 2. Branch name pattern: `main`.
 3. Activar **Require a pull request before merging**.
-4. Si trabajás solo, dejá **Required approvals en 0** o desactivá
-   **Require approvals**. GitHub no permite autoaprobarse, pero sí permite
-   mergear un PR propio cuando no se exige aprobación. Si hay equipo, poné 1.
+4. Si trabajás solo, dejá **Required approvals en 0**. GitHub no permite
+   autoaprobarse, pero sí permite mergear un PR propio cuando no se exige
+   aprobación. Si hay equipo, poné 1 o más.
 5. Activar **Require status checks to pass before merging** y seleccionar:
    - `Preparación del entorno`
    - `Calidad estática`
@@ -388,31 +410,37 @@ git push -u origin main
 6. Activar **Do not allow bypassing the above settings**.
 7. Bloquear force pushes y borrado de la rama.
 
-### 9.5 Verificar el pipeline remoto
+En un repositorio público conviene habilitar además **Require approval for all
+outside collaborators** para que un fork no ejecute workflows sin revisión.
+
+### 9.4 Verificar el pipeline remoto
 
 1. Abrir **Actions → CI**.
-2. Confirmar que los 7 jobs terminan en verde.
-3. Descargar los artefactos `reportes-*` y `documentacion-html`.
-4. Abrir la URL de Pages y verificar la navegación.
+2. Confirmar que las 7 definiciones de job terminan en verde. La matriz de
+   Python muestra 9 tarjetas porque `pruebas-cobertura` se expande a 3.11,
+   3.12 y 3.13.
+3. Descargar los artefactos `reportes-*`, `baseline-generada` y
+   `documentacion-html`.
+4. Abrir la URL de Pages y verificar la navegación y la referencia de API.
 5. Hacer un pull request de prueba y confirmar que los checks bloquean el merge
    si se introduce un fallo.
 
-### 9.6 Actualizar datos de la entrega
+### 9.5 Datos de la entrega
 
-- Completar nombres de integrantes y URL del repositorio en este informe.
-- Agregar `site_url` en `mkdocs.yml`.
+- Repositorio y sitio ya están cargados en la portada de este informe.
+- Completar los nombres de los integrantes si corresponde.
 - Opcional: capturar pantalla de Actions y de Pages para anexar a la entrega.
 
 ---
 
 ## 10. Conclusión
 
-La solución cumple localmente con todos los contenidos mínimos de documentación
-y con la matriz de controles de CI exigida. La documentación es navegable,
-versionada y validada automáticamente; el pipeline aplica políticas explícitas
-de bloqueo y genera reportes legibles, JSON y SARIF. La única brecha es la
-publicación remota, que depende de credenciales y configuración de GitHub y se
-detalla paso a paso en la sección 9.
+La solución cumple con los contenidos mínimos de documentación y con la matriz
+de controles de CI exigida. La documentación es navegable, versionada, validada
+automáticamente y publicada en GitHub Pages; el pipeline aplica políticas
+explícitas de bloqueo y genera reportes legibles, JSON y SARIF. La línea base de
+rendimiento se regenera en el mismo entorno de CI para evitar falsos positivos
+por hardware, y el proceso queda trazado en un pull request revisable.
 
 
 

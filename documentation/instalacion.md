@@ -35,6 +35,39 @@ pip check
 python -m compileall -q *.py scripts tests benchmarks
 ```
 
+## Configuración
+
+La aplicación no requiere variables de entorno obligatorias. Los valores por
+defecto viven en `config.py` y pueden ajustarse editando ese archivo:
+
+| Constante | Valor por defecto | Uso |
+|---|---|---|
+| `DOCS_DIR` | `docs/` | Directorio del corpus que indexan la CLI y la API. |
+| `REPORTS_DIR` | `reports/` | Salida de los reportes generados por la CLI. |
+| `NUM_DOCUMENTS` | `200` | Cantidad de documentos del corpus sintético. |
+| `MIN_WORDS_PER_DOC` / `MAX_WORDS_PER_DOC` | `50` / `200` | Rango de palabras por documento. |
+| `CACHE_MAX_SIZE` | `128` | Capacidad de la caché LRU de consultas. |
+| `DEFAULT_TOP_K` | `10` | Cantidad de resultados devueltos por búsqueda. |
+| `DEFAULT_WORKERS` | `os.cpu_count()` | Workers del pool para archivos grandes. |
+
+Para cambiar el corpus sin tocar el código se usan los argumentos del generador:
+
+```bash
+python scripts/generate_corpus.py --docs 500 --large 2 --words-per-large 20000 --seed 7
+```
+
+La API permite inyectar otro directorio al crear la aplicación:
+
+```python
+from api import create_app
+
+app = create_app(docs_dir="/ruta/a/otro/corpus")
+```
+
+Los atajos de `make` y `scripts/run_ci_locally.sh` respetan `PYTHON` y `VENV`;
+por ejemplo, `PYTHON=python3.13 VENV=.venv313 make ci`. La herramienta de
+memoria acepta `--repeat` para repetir cada medición y conservar la mediana.
+
 ## Generar el corpus
 
 El corpus no se versiona. Se genera con una semilla para que sea reproducible:
@@ -141,5 +174,5 @@ El sitio se genera en `site/`. GitHub Pages lo publica desde `main` mediante
 | `mkdocs: command not found` | Faltan dependencias de docs. | `pip install -r requirements-docs.txt` |
 | Benchmarks inestables | Carga del equipo o hardware distinto. | Cerrar procesos, repetir, revisar tolerancia. |
 | Gitleaks no encontrado | No se descargó la herramienta. | `bash scripts/run_ci_locally.sh` o descargar en `.tools/`. |
-| Lychee falla por enlaces externos | Sin conectividad. | El control local usa `--offline`; los externos se revisan en CI. |
+| Lychee falla por enlaces externos | Sin conectividad o enlace externo caído. | El control automático usa `--offline` y valida solo enlaces internos; los externos se revisan manualmente. |
 | `docs/` vacío | Corpus no generado. | `python scripts/generate_corpus.py --docs 200 --seed 42` |

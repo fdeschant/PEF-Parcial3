@@ -18,14 +18,14 @@ Adoptar estos controles bloqueantes:
 | Estilo y errores | Ruff | 0 hallazgos; formato verificado. |
 | Diseño | Pylint | Score ≥ 8.0. |
 | Tipado | mypy | 0 errores en el núcleo. |
-| Complejidad | Radon | Sin bloques ≥ C; MI ≥ 20. |
+| Complejidad y tamaño | Radon + Pylint | Sin bloques ≥ C; MI ≥ 20; `max-statements=60`; `max-branches=15`. |
 | Seguridad de código | Bandit | 0 HIGH/HIGH. |
 | Dependencias | pip-audit | 0 CVE en dependencias de ejecución. |
 | Secretos | Gitleaks | 0 hallazgos. |
 | Documentación | MkDocs | `--strict` sin warnings. |
 | Enlaces | Lychee | 0 enlaces internos rotos. |
 | Rendimiento | pytest-benchmark | Regresión ≤ 50% en `main`. |
-| Memoria | tracemalloc | ≤ `min(256 MB, 1.5× base)` en `main`. |
+| Memoria | tracemalloc | Mediana de 3 corridas ≤ `min(256 MB, 1.5× base)` en `main`. |
 
 Los controles de rendimiento y memoria son informativos en pull requests y
 bloqueantes en `main`, `schedule` y ejecución manual, para evitar falsos
@@ -40,9 +40,14 @@ negativos por ruido del runner compartido.
 - **Complejidad C**: los bloques A/B son mantenibles; un bloque C requiere
   justificación y el gate actual lo prohíbe.
 - **MI ≥ 20**: umbral estándar de Radon para código mantenible.
+- **Tamaño de funciones**: `max-statements=60` y `max-branches=15` acotan
+  funciones demasiado largas o ramificadas sin imponer un estilo artificial.
 - **50% de tolerancia**: absorbe variación de hardware sin ocultar regresiones
   grandes.
 - **Memoria 1.5×**: permite variación del recolector y del sistema operativo.
+- **Línea base en CI**: se genera en `ubuntu-latest` con Python 3.13 mediante
+  `baseline.yml`, para que la comparación no dependa del hardware local.
+- **Mediana de 3 corridas**: reduce el ruido del runner compartido.
 
 ## Consecuencias
 
@@ -65,4 +70,5 @@ negativos por ruido del runner compartido.
 
 Aceptada. Los valores concretos están en `pyproject.toml`, `.pylintrc`,
 `scripts/check_complexity.py`, `scripts/check_benchmark.py` y
-`scripts/check_memory.py`.
+`scripts/check_memory.py`. Las líneas base se regeneran con
+`.github/workflows/baseline.yml` en `ubuntu-latest` y se revisan mediante un PR.

@@ -52,11 +52,11 @@ ensure_lychee() {
 }
 
 step "Calidad estática: Ruff"
-ruff check .
-ruff format --check .
+ruff check . | tee reports/ruff.txt
+ruff format --check . | tee reports/ruff-format.txt
 
 step "Tipado estático: mypy"
-mypy
+mypy | tee reports/mypy.txt
 
 step "Diseño: Pylint"
 pylint --rcfile=.pylintrc \
@@ -103,7 +103,7 @@ pytest benchmarks -q --benchmark-json=reports/benchmark.json
 python scripts/check_benchmark.py reports/benchmark.json benchmarks/baseline.json
 
 step "Rendimiento: memoria"
-python scripts/measure_memory.py --output reports/memory.json
+python scripts/measure_memory.py --repeat 3 --output reports/memory.json
 python scripts/check_memory.py reports/memory.json benchmarks/memory_baseline.json
 
 step "Rendimiento: perfilado de CPU"

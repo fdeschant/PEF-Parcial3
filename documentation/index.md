@@ -67,4 +67,6 @@ la documentación y el código quedan visibles. Para publicarla:
 - Pylint: **10.00/10** en los módulos del núcleo.
 - Complejidad: todos los bloques en rango **A/B**; mantenibilidad **≥ 20**.
 - Documentación: construcción estricta y enlaces internos validados.
-- Rendimiento y memoria: líneas base versionadas y comparación automática.
+- Rendimiento y memoria: líneas base versionadas; el workflow manual
+  `baseline.yml` las regenera en `ubuntu-latest` con Python 3.13.
+- CI remoto: repositorio público y sitio publicado en GitHub Pages.

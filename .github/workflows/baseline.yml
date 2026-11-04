@@ -1,0 +1,78 @@
+name: Regenerar línea base
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: Crear un pull request con las líneas base generadas
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  baseline:
+    name: Línea base en ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Generar benchmark
+        run: |
+          mkdir -p reports
+          pytest benchmarks -q --benchmark-json=reports/benchmark.json
+      - name: Generar línea base compacta
+        run: python scripts/compact_baseline.py reports/benchmark.json benchmarks/baseline.json
+      - name: Generar línea base de memoria
+        run: python scripts/measure_memory.py --repeat 3 --output benchmarks/memory_baseline.json
+      - name: Publicar artefactos de la línea base
+        uses: actions/upload-artifact@v7
+        with:
+          name: baseline-generada
+          path: |
+            benchmarks/baseline.json
+            benchmarks/memory_baseline.json
+            reports/benchmark.json
+      - name: Crear pull request
+        if: ${{ inputs.create_pr }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="ci/baseline-${GITHUB_RUN_ID}"
+          git checkout -b "$branch"
+          git add benchmarks/baseline.json benchmarks/memory_baseline.json
+          if git diff --cached --quiet; then
+            echo "No hay cambios en las líneas base."
+            exit 0
+          fi
+          git commit -m "ci: regenerar línea base de rendimiento"
+          git push origin "$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "ci: regenerar línea base de rendimiento" \
+            --body "Líneas base generadas en \`ubuntu-latest\` con Python ${PYTHON_VERSION}.
+
+          Ejecución: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          Revisar que los cambios correspondan a una recalibración intencional del entorno y mergear para alinear el gate de rendimiento."
