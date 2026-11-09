@@ -5,7 +5,7 @@ pytest-cov==7.1.0
 pytest-benchmark==5.3.1
 coverage==7.17.0
 httpx==0.28.1
-ruff==0.17.3
+ruff==0.17.4
 mypy==2.4.1
 types-PyYAML==6.0.12.20261030
 pylint==4.1.3
